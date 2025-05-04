@@ -1,0 +1,4 @@
+[tools]
+aws-vault = "latest"
+go = "latest"
+make = "latest"

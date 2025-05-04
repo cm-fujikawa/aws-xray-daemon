@@ -64,7 +64,7 @@ type Processor struct {
 
 // New creates new instance of Processor.
 func New(awsConfig *aws.Config, s *session.Session, segmentBatchProcessorCount int, std *ringbuffer.RingBuffer,
-	pool *bufferpool.BufferPool, c *cfg.ParameterConfig) *Processor {
+	pool *bufferpool.BufferPool, c *cfg.ParameterConfig, config *cfg.Config) *Processor {
 	batchesChan := make(chan []*string, c.Processor.BatchProcessorQueueSize)
 	segmentBatchDoneChan := make(chan bool)
 	tsb := &segmentsBatch{
@@ -72,6 +72,7 @@ func New(awsConfig *aws.Config, s *session.Session, segmentBatchProcessorCount i
 		done:    segmentBatchDoneChan,
 		randGen: rand.New(rand.NewSource(time.Now().UnixNano())),
 		timer:   &timer.Client{},
+		config:  config,
 	}
 	x := conn.NewXRay(awsConfig, s)
 	if x == nil {

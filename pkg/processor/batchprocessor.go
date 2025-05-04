@@ -19,6 +19,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/xray"
 	log "github.com/cihub/seelog"
+	"github.com/aws/aws-xray-daemon/pkg/cfg"
 )
 
 var /* const */ segIdRegexp = regexp.MustCompile(`\"id\":\"(.*?)\"`)
@@ -40,6 +41,9 @@ type segmentsBatch struct {
 
 	// Instance of timer.
 	timer timer.Timer
+
+	// config参照用
+	config *cfg.Config
 }
 
 func (s *segmentsBatch) send(batch []*string) {
@@ -66,6 +70,14 @@ func (s *segmentsBatch) poll() {
 		if ok {
 			params := &xray.PutTraceSegmentsInput{
 				TraceSegmentDocuments: batch,
+			}
+			// ログレベルがdevの場合のみ送信データをそのまま出力
+			if s.config != nil && s.config.Logging.LogLevel == "dev" {
+				for i, doc := range batch {
+					if doc != nil {
+						log.Infof("[dev] Send to X-Ray: batch[%d]: %s", i, *doc)
+					}
+				}
 			}
 			start := time.Now()
 			// send segment to X-Ray service.
