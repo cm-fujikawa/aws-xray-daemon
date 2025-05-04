@@ -216,7 +216,7 @@ func initDaemon(config *cfg.Config) *Daemon {
 		count:     0,
 		sock:      sock,
 		server:    server,
-		processor: processor.New(awsConfig, session, processorCount, std, bufferPool, parameterConfig),
+		processor: processor.New(awsConfig, session, processorCount, std, bufferPool, parameterConfig, config),
 	}
 
 	return daemon
@@ -305,6 +305,10 @@ func (d *Daemon) poll() {
 
 		buf := *bufPointer
 		bufMessage := buf[0:rlen]
+		// ログレベルがdevの場合のみ受信データをそのまま出力
+		if config != nil && config.Logging.LogLevel == "dev" {
+			log.Infof("[dev] Received data: %s", string(bufMessage))
+		}
 
 		slices := util.SplitHeaderBody(&bufMessage, &separator, &splitBuf)
 		if len(slices[1]) == 0 {
